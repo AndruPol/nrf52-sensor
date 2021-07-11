@@ -23,7 +23,7 @@
 #define DEBUG			0
 #define UPDATE_CONFIG	0	// update config
 
-#define SLEEP_TIME		10	// default sleep, S
+#define SLEEP_TIME		30	// default sleep, S
 #define WAIT_TIME		70  // wait gateway message, mS
 
 config_t config;
@@ -53,18 +53,18 @@ static void dosleep(uint16_t time) {
   }
   NRF_P0->LATCH = NRF_P0->LATCH;
 
-  WDGcfg.timeout_ms = 1000 * time;
-  wdgStart(&WDGD1, &WDGcfg);
-
   chThdSetPriority(HIGHPRIO);
+
+  // switch to HFINT clock source
+  NRF_CLOCK->TASKS_HFCLKSTOP = 1;
+  while (NRF_CLOCK->HFCLKSTAT && CLOCK_HFCLKSTAT_STATE_Pos == CLOCK_HFCLKSTAT_STATE_Running);
 
   // disable SysTick RTC
   NRF_RTC1->TASKS_STOP  = 1;
   nvicDisableVector(RTC1_IRQn);
 
-  // switch to HFINT clock source
-  NRF_CLOCK->TASKS_HFCLKSTOP = 1;
-  while (NRF_CLOCK->HFCLKSTAT && CLOCK_HFCLKSTAT_STATE_Pos == CLOCK_HFCLKSTAT_STATE_Running);
+  WDGcfg.timeout_ms = 1000 * time;
+  wdgStart(&WDGD1, &WDGcfg);
 
   // waiting watchdog reset
   while (true) {
@@ -99,8 +99,6 @@ static void default_config(void) {
  */
 int main(void) {
     
-//	NRF_POWER->DCDCEN = 1;
-
 	halInit();
 	chSysInit();
 
@@ -130,7 +128,7 @@ int main(void) {
     }
 #endif
 
-    pof_init(POF_V21);
+    pof_init(POF_V22);
 
     int8_t si_rslt, dht_rslt;
   	int16_t si_temp, dht_temp;
@@ -174,11 +172,6 @@ int main(void) {
 
 	  radio_start();
 
-	  if (pof_warning)
-		send_vbat(ADDR_DEVICE, ERR_VBAT_LOW);
-	  else
-		send_vbat(ADDR_DEVICE, ERR_NO_ERROR);
-
       if (si_rslt == SI7021_OK) {
 #if DEBUG
     	chprintf((BaseSequentialStream *) &SD1, "SI7021 temp: %d, hum: %d\r\n", si_temp, si_hum);
@@ -203,6 +196,11 @@ int main(void) {
 		  }
 	  }
 
+	  if (pof_warning)
+		send_vbat(ADDR_DEVICE, ERR_VBAT_LOW);
+	  else
+		send_vbat(ADDR_DEVICE, ERR_NO_ERROR);
+
       do {
     	  send_msg_wait();
     	  chThdSleepMilliseconds(WAIT_TIME);
@@ -216,13 +214,13 @@ int main(void) {
       }
 
 SLEEP:
+	  pof_stop();
 	  radio_stop();
 
-	  if (config.sleep > 0) {
+	  if (config.sleep > 0)
 		  dosleep(config.sleep);
-      }
-
-	  dosleep(SLEEP_TIME);
+	  else
+		  dosleep(SLEEP_TIME);
     }
 }
 

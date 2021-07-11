@@ -270,7 +270,7 @@ static void parseMSGCmd(MESSAGE_T *msg) {
 			    send_cmd_error(ADDR_CFG_HEATER, ERR_BAD_PARAM);
 			    break;
 			}
-			config.heater = (bool) msg->data.i32;
+			config.heater = (uint8_t) msg->data.i32;
 			write_config = true;
 		}
 		send_cfg_value(ADDR_CFG_HEATER, config.heater);

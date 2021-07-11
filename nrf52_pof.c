@@ -55,10 +55,21 @@ void pof_init(nrf52_pof_voltage_t v) {
   (void)p->EVENTS_POFWARN;
 #endif
 
-  // POF interrupt enables
+  // POF interrupt enable
   p->INTENSET |= ((POWER_INTENSET_POFWARN_Enabled << POWER_INTENSET_POFWARN_Pos) & POWER_INTENSET_POFWARN_Msk);
 
   // POF configure
   p->POFCON = ((v << POWER_POFCON_THRESHOLD_Pos) & POWER_POFCON_THRESHOLD_Msk) |
 		  	  ((POWER_POFCON_POF_Enabled << POWER_POFCON_POF_Pos) & POWER_POFCON_POF_Msk);
+
+  nvicEnableVector(POWER_CLOCK_IRQn, NRF5_POWER_CLOCK_IRQ_PRIORITY);
+}
+
+void pof_stop(void) {
+  NRF_POWER_Type *p = NRF_POWER;
+
+  // POF interrupt disable
+  p->INTENCLR |= ((POWER_INTENCLR_POFWARN_Enabled << POWER_INTENCLR_POFWARN_Pos) & POWER_INTENCLR_POFWARN_Msk);
+
+  nvicDisableVector(POWER_CLOCK_IRQn);
 }

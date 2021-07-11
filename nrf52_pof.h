@@ -8,8 +8,10 @@
 #ifndef NRF52_POF_H_
 #define NRF52_POF_H_
 
+#define NRF5_POWER_CLOCK_IRQ_PRIORITY     3
+
 typedef enum {
-  POF_V17 = POWER_POFCON_THRESHOLD_V17,
+  POF_V17 	= POWER_POFCON_THRESHOLD_V17,
   POF_V18	= POWER_POFCON_THRESHOLD_V18,
   POF_V19	= POWER_POFCON_THRESHOLD_V19,
   POF_V20	= POWER_POFCON_THRESHOLD_V20,
@@ -26,5 +28,6 @@ typedef enum {
 extern bool pof_warning;
 
 void pof_init(nrf52_pof_voltage_t v);
+void pof_stop(void);
 
 #endif /* NRF52_POF_H_ */

@@ -39,7 +39,7 @@
 #define NRF5_QEI_USE_QDEC0             FALSE
 #define NRF5_QEI_USE_LED               FALSE
 
-#define WDG_USE_TIMEOUT_CALLBACK       FALSE
+#define WDG_USE_TIMEOUT_CALLBACK       TRUE
 
 #define NRF5_PWM_USE_PWM0              FALSE
 #define NRF5_PWM_USE_PWM1              FALSE
